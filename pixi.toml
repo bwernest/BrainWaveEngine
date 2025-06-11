@@ -9,3 +9,6 @@ version = "0.1.0"
 go = "python main.py"
 
 [dependencies]
+matplotlib = "*"
+numpy = "*"
+tqdm = "*"
