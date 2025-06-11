@@ -1,0 +1,11 @@
+[workspace]
+authors = ["bwernest <ernest.laprelleboucher@gmail.com>"]
+channels = ["conda-forge"]
+name = "brainwaveengine"
+platforms = ["win-64"]
+version = "0.1.0"
+
+[tasks]
+go = "python main.py"
+
+[dependencies]

@@ -14,11 +14,7 @@ import copy
 from time import perf_counter as clock
 
 # BrainWaveEngine
-from .layer import Layer
-from .activation import Activation
-from .loss import Loss
-from .network import Network
-from .optimizer import Optimizer
+from engine import *
 
 """___Class_________________________________________________________________"""
 
@@ -31,13 +27,16 @@ lay.dense(7, 5, activation = 'baffwill_v1')
 net.modify_layer(lay, 2)
 net.forward([1, 5, 6, 12, 18])
 
-start = -2
-end = 6
+net.display()
+
+# start = -2
+# end = 6
 
 
-net = Network()
-net.default([1, 5, 5, 1])
-net.test(-10, 10)
+# net = Network()
+# net.default([2, 5, 5, 4, 2])
+# net.display()
+# net.test(-10, 10)
 
 
 # net.fct(start, end, 1)
