@@ -7,8 +7,11 @@ version = "0.1.0"
 
 [tasks]
 go = "python main.py"
+test = "pytest"
 
 [dependencies]
+python = "3.13.*"
 matplotlib = "*"
 numpy = "*"
 tqdm = "*"
+pytest = "*"
