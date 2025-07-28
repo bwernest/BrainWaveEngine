@@ -7,11 +7,20 @@ version = "0.1.0"
 
 [tasks]
 go = "python main.py"
-test = "pytest"
+format = "autopep8 --in-place --recursive ./"
+test = "pytest tests"
+get_cover = "coverage run -m pytest tests"
+show_cover = "coverage html"
+coverage = {depends-on = ["get_cover", "show_cover"]}
 
 [dependencies]
+# Python
 python = "3.13.*"
 matplotlib = "*"
 numpy = "*"
+
+# Development
+autopep8 = "*"
+coverage = "*"
 tqdm = "*"
 pytest = "*"
