@@ -5,3 +5,6 @@
 .pixi
 *.egg-info
 pixi.lock
+
+# Development data
+.coverage

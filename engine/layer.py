@@ -2,7 +2,7 @@
 
 # Python
 import numpy as np
-import copy
+from copy import deepcopy
 
 # BrainWaveEngine
 from .activation import Activation
@@ -21,8 +21,21 @@ class Layer():
 
     def __repr__(self) -> str:
         log = f"<Layer w/ {len(self.weights)} inputs {len(self.biases)} outputs>"
-
         return log
+
+    def __eq__(self, layer: "Layer") -> bool:
+        for key, elem in self.__dict__.items():
+            if not isinstance(elem, type(layer.__dict__[key])):
+                return False
+            if isinstance(elem, np.ndarray):
+                if not np.array_equal(elem, layer.__dict__[key]):
+                    return False
+            elif elem != layer.__dict__[key]:
+                return False
+        return True
+
+    def __ne__(self, layer: "Layer"):
+        return not self == layer
 
     def dense(self,
               n_inputs: int,
@@ -110,17 +123,21 @@ class Layer():
         elif self.type == 'straight':
             self.output = inputs * self.weights + self.biases
         elif self.type == 'random':
-            weights = copy.deepcopy(self.weights)
+            weights = deepcopy(self.weights)
             weights[np.isnan(weights)] = 0
             self.output = np.dot(inputs, weights) + self.biases
         activation = Activation()
         activation.forward(self.output, self.activation, parameters=self.parameters)
         self.output = activation.output
 
-    def copy(self,
-             network: object,
-             n_layer: int
-             ) -> None:
+    def copy_from_layer(self, layer: "Layer") -> None:
+        for key, elem in layer.__dict__.items():
+            self.__dict__[key] = deepcopy(elem)
+
+    def copy_from_network(self,
+                          network: object,
+                          n_layer: int
+                          ) -> None:
         self.inputs = network.layers_list[n_layer]
         self.neurons = network.layers_list[n_layer + 1]
         self.type = network.brain[n_layer][0]

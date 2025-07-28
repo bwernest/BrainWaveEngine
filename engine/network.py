@@ -278,6 +278,18 @@ class Network():
             x, y = np.array(biases_list[bias, 1:], dtype='uint8')
             self.brain[x]["biases"][y] = biases_list[bias, 0]
 
+    def copy(self,
+             network: object,
+             n_layer: int
+             ) -> None:
+        self.inputs = network.layers_list[n_layer]
+        self.neurons = network.layers_list[n_layer + 1]
+        self.type = network.brain[n_layer][0]
+        self.weights = network.brain[n_layer][1]
+        self.biases = network.brain[n_layer][2]
+        self.activation = network.brain[n_layer][3]
+        self.parameters = network.brain[n_layer][4]
+
     def display(self,
                 figure: int = 6
                 ) -> None:
