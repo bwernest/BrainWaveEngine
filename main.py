@@ -22,7 +22,7 @@ net = Network()
 net.default([5, 2, 7, 5])
 
 lay = Layer()
-lay.dense(7, 5, activation = 'baffwill_v1')
+lay.dense(7, 5, activation='baffwill_v1')
 
 net.modify_layer(lay, 2)
 net.forward([1, 5, 6, 12, 18])
