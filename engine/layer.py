@@ -1,13 +1,13 @@
 """___Modules_______________________________________________________________"""
 
 # Python
-import numpy as np
 from copy import deepcopy
+import numpy as np
 
 # BrainWaveEngine
 from .activation import Activation
 
-"""___Layer_generation______________________________________________________"""
+"""___Classes_______________________________________________________________"""
 
 class Layer():
     """

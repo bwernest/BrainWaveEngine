@@ -1,15 +1,15 @@
 """___Modules_______________________________________________________________"""
 
 # Python
+import copy
 import numpy as np
 from matplotlib import pyplot as plt
-import copy
 
 # BrainWaveEngine
-from .layer import Layer
 from .activation import Activation
+from .layer import Layer
 
-"""___Network_______________________________________________________________"""
+"""___Classes_______________________________________________________________"""
 
 class Network():
 

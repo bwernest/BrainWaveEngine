@@ -3,7 +3,7 @@
 # Python
 import numpy as np
 
-"""___Activation_functions__________________________________________________"""
+"""___Classes_______________________________________________________________"""
 
 class Activation():      # Build for one inputs set (single) or multiple inputs set (multiple)
 

@@ -1,8 +1,8 @@
 """___Modules_______________________________________________________________"""
 
 # Python
-import numpy as np
 import copy
+import numpy as np
 from time import perf_counter as clock
 
 # BrainWaveEngine
@@ -10,7 +10,7 @@ from .activation import Activation
 from .loss import Loss
 from .network import Network
 
-"""___Optimizer_____________________________________________________________"""
+"""___Classes_______________________________________________________________"""
 
 class Optimizer():
 
