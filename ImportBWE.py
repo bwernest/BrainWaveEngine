@@ -2,3 +2,4 @@
 
 # BrainWaveEngine
 from .engine import *
+from .tools.errors import *

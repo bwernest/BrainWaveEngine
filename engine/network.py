@@ -26,7 +26,8 @@ class Network():
 
     def default(self,
                 layers_list: list[int],
-                factors_list: list[float] = []
+                factors_list: list[float] = [],
+                init: str = "default"
                 ) -> None:
         """
         Generates a neural network with the layers indicated. All activation functions are ReLU except for the output layer that uses Sigmoid.
@@ -63,11 +64,13 @@ class Network():
         for n in range(len(layers_list) - 1):
 
             if factor_type == 2:
-                layer.dense(layers_list[n], layers_list[n + 1], 'relu', k_weights=factors_w[n], k_biases=factors_b[n])
+                layer.dense(layers_list[n], layers_list[n + 1], 'relu',
+                            k_weights=factors_w[n], k_biases=factors_b[n], init=init)
             elif factor_type == 1:
-                layer.dense(layers_list[n], layers_list[n + 1], 'relu', k_weights=factors_w, k_biases=factors_b)
+                layer.dense(layers_list[n], layers_list[n + 1], 'relu',
+                            k_weights=factors_w, k_biases=factors_b, init=init)
             else:
-                layer.dense(layers_list[n], layers_list[n + 1], 'relu')
+                layer.dense(layers_list[n], layers_list[n + 1], 'relu', init=init)
             self.add_layer(layer)
         self.brain[self.len - 1][3] = 'sigmoid'
         self.brain[self.len - 1][4] = [1]
@@ -277,18 +280,6 @@ class Network():
         for bias in range(len(biases_list)):
             x, y = np.array(biases_list[bias, 1:], dtype='uint8')
             self.brain[x]["biases"][y] = biases_list[bias, 0]
-
-    def copy(self,
-             network: object,
-             n_layer: int
-             ) -> None:
-        self.inputs = network.layers_list[n_layer]
-        self.neurons = network.layers_list[n_layer + 1]
-        self.type = network.brain[n_layer][0]
-        self.weights = network.brain[n_layer][1]
-        self.biases = network.brain[n_layer][2]
-        self.activation = network.brain[n_layer][3]
-        self.parameters = network.brain[n_layer][4]
 
     def display(self,
                 figure: int = 6

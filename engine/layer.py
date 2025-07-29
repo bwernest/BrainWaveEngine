@@ -6,6 +6,7 @@ import numpy as np
 
 # BrainWaveEngine
 from .activation import Activation
+from ..tools.errors import *
 
 """___Classes_______________________________________________________________"""
 
@@ -14,6 +15,23 @@ class Layer():
     Information
     ----------
     Class used to generate layers. This class can only creates one layer at a time. To create multiples layers, please use the Network class.
+
+    Attributs
+    ----------
+    n_inputs : int
+        Nombre de neurones en amont de cette couche.
+    n_neurons : int
+        Nombre de neurones de cette couche.
+    activation : str
+        Fonction d'activation des neurones.
+    weights : np.ndarray
+        Tableau des weights.
+    biases : np.ndarray
+        Tableau des biases.
+    parameters : list
+        Liste de paramètres utiles pour certaines fonctions d'activation ou autres.
+    init : str
+        Méthode d'initialisation des weights et biases.
     """
 
     n_inputs: int
@@ -52,12 +70,17 @@ class Layer():
         self.activation = activation
         self.parameters = parameters
 
+        # Different methods of initialisation
         if init == "default":
             self.weights = k_weights * np.random.randn(self.inputs, self.neurons)
             self.biases = k_biases * np.random.randn(self.neurons)
 
-        elif init == "Xavier":
-            self.weights = 2
+        elif init == "test":
+            self.weights = np.ones(shape=(n_inputs, n_neurons))
+            self.biases = np.ones(shape=(n_neurons))
+
+        else:
+            raise InitUnknownError()
 
     def straight(self,
                  n_inputs: int,
@@ -77,6 +100,13 @@ class Layer():
             self.weights = k_weights * np.array([np.random.randn(self.neurons)])
             self.biases = k_biases * np.random.randn(self.neurons)
 
+        elif init == "test":
+            self.weights = np.ones(shape=(self.neurons))
+            self.biases = np.ones(shape=(self.neurons))
+
+        else:
+            raise InitUnknownError()
+
     def random(self,
                n_inputs: int,
                n_neurons: int,
@@ -93,23 +123,39 @@ class Layer():
         self.parameters = parameters
         ok = 0
 
-        if init == 'default':
-            while ok != n_inputs + n_neurons:
-                ok = 0
-                self.weights = k_weights * np.random.randn(n_inputs, n_neurons)
-                sort = self.weights * np.random.randint(0, 2, (n_inputs, n_neurons))
-                for inputs in range(n_inputs):
-                    nones = np.mean(sort[inputs] == 0)
+        while ok != n_inputs + n_neurons:
+            ok = 0
+            self.weights = k_weights * np.random.randn(n_inputs, n_neurons)
+            sort = self.weights * np.random.randint(0, 2, (n_inputs, n_neurons))
+            for inputs in range(n_inputs):
+                nones = np.mean(sort[inputs] == 0)
+                if not nones in [0, 1]:
+                    ok += 1
+            if ok == n_inputs:
+                for outputs in range(n_neurons):
+                    nones = np.mean(sort[:, outputs] == 0)
                     if not nones in [0, 1]:
                         ok += 1
-                if ok == n_inputs:
-                    for outputs in range(n_neurons):
-                        nones = np.mean(sort[:, outputs] == 0)
-                        if not nones in [0, 1]:
-                            ok += 1
-            sort[sort == 0] = None
-            self.weights = sort
+        sort[sort == 0] = None
+        self.weights = sort
+        self.biases = k_biases * np.random.randn(n_neurons)
+
+        if init == 'default':
+            for line in range(len(self.weights)):
+                for w in range(len(self.weights[0])):
+                    if self.weights[line, w] != None:
+                        self.weights[line, w] = k_weights * np.random.random()
             self.biases = k_biases * np.random.randn(n_neurons)
+
+        elif init == "test":
+            for line in range(len(self.weights)):
+                for w in range(len(self.weights[0])):
+                    if self.weights[line, w] != None:
+                        self.weights[line, w] = 1.
+            self.biases = k_biases * np.ones(shape=(n_neurons))
+
+        else:
+            raise InitUnknownError()
 
     def forward(self,
                 inputs: list[float]
@@ -134,17 +180,18 @@ class Layer():
         for key, elem in layer.__dict__.items():
             self.__dict__[key] = deepcopy(elem)
 
-    def copy_from_network(self,
-                          network: object,
-                          n_layer: int
-                          ) -> None:
+    def copy_from_network(
+        self,
+        network: object,
+        n_layer: int
+    ) -> None:
         self.inputs = network.layers_list[n_layer]
         self.neurons = network.layers_list[n_layer + 1]
-        self.type = network.brain[n_layer][0]
-        self.weights = network.brain[n_layer][1]
-        self.biases = network.brain[n_layer][2]
-        self.activation = network.brain[n_layer][3]
-        self.parameters = network.brain[n_layer][4]
+        self.type = network.brain[n_layer]["type"]
+        self.weights = network.brain[n_layer]["weights"]
+        self.biases = network.brain[n_layer]["biases"]
+        self.activation = network.brain[n_layer]["activation"]
+        self.parameters = network.brain[n_layer]["parameters"]
 
     def info(self) -> None:
         print(f"Type : {self.type}\nActivation : {self.activation}\n" +
