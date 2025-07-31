@@ -7,30 +7,27 @@ import numpy as np
 
 class Activation():      # Build for one inputs set (single) or multiple inputs set (multiple)
 
+    def __init__(self) -> None:
+        self.forwardict = {
+            "relu": self.ReLU,
+            "softmax": self.Softmax,
+            "clip": self.Clip,
+            "spread": self.Spread,
+            "identity": self.Identity,
+            "argmax": self.Argmax,
+            "sigmoid": self.Sigmoid,
+            "tansigmoid": self.TanSigmoid,
+
+            "baffwill_v1": self.BaffWill_v1,
+        }
+
     def forward(self,
                 inputs: list[float],
                 fct: str,
                 parameters: list = []
                 ) -> None:
         if type(fct) == str:
-            if fct == 'relu':
-                self.ReLU(inputs)
-            elif fct == 'softmax':
-                self.Softmax(inputs)
-            elif fct == 'clip':
-                self.Clip(inputs, parameters[0], parameters[1])
-            elif fct == 'spread':
-                self.Spread(inputs, parameters[0], parameters[1])
-            elif fct == 'identity':
-                self.Identity(inputs)
-            elif fct == 'argmax':
-                self.Argmax(inputs)
-            elif fct == 'sigmoid':
-                self.Sigmoid(inputs, parameters[0])
-            elif fct == 'tansigmoid':
-                self.TanSigmoid(inputs, parameters[0])
-            elif fct == 'baffwill_v1':
-                self.BaffWill_v1(inputs)
+            self.forwardict[fct](inputs)
         else:
             self.output = fct(inputs, parameters)
 

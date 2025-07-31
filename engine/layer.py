@@ -37,20 +37,28 @@ class Layer():
     n_inputs: int
     n_neurons: int
 
+    def __init__(self) -> None:
+        self.forwardict = {
+            "dense": self.forward_dense,
+            "straight": self.forward_straight,
+            "random": self.forward_random,
+        }
+
     def __repr__(self) -> str:
         log = f"<Layer w/ {len(self.weights)} inputs {len(self.biases)} outputs>"
         return log
 
     def __eq__(self, layer: "Layer") -> bool:
-        for key, elem in self.__dict__.items():
-            if not isinstance(elem, type(layer.__dict__[key])):
-                return False
-            if isinstance(elem, np.ndarray):
-                if not np.array_equal(elem, layer.__dict__[key]):
-                    return False
-            elif elem != layer.__dict__[key]:
-                return False
-        return True
+        valids = [
+            self.activation == layer.activation,
+            self.n_inputs == layer.n_inputs,
+            self.n_neurons == layer.n_neurons,
+            self.parameters == self.parameters,
+            self.type == layer.type,
+            np.array_equal(self.biases, layer.biases),
+            np.array_equal(self.weights, layer.weights),
+        ]
+        return np.mean(valids) == 1
 
     def __ne__(self, layer: "Layer"):
         return not self == layer
@@ -65,15 +73,15 @@ class Layer():
               k_biases: float = 1
               ) -> None:
         self.type = "dense"
-        self.inputs = n_inputs
-        self.neurons = n_neurons
+        self.n_inputs = n_inputs
+        self.n_neurons = n_neurons
         self.activation = activation
         self.parameters = parameters
 
         # Different methods of initialisation
         if init == "default":
-            self.weights = k_weights * np.random.randn(self.inputs, self.neurons)
-            self.biases = k_biases * np.random.randn(self.neurons)
+            self.weights = k_weights * np.random.randn(n_inputs, n_neurons)
+            self.biases = k_biases * np.random.randn(n_neurons)
 
         elif init == "test":
             self.weights = np.ones(shape=(n_inputs, n_neurons))
@@ -91,18 +99,18 @@ class Layer():
                  k_biases: float = 1
                  ) -> None:
         self.type = 'straight'
-        self.inputs = n_inputs
-        self.neurons = n_inputs
+        self.n_inputs = n_inputs
+        self.n_neurons = n_inputs
         self.activation = activation
         self.parameters = parameters
 
         if init == "default":
-            self.weights = k_weights * np.array([np.random.randn(self.neurons)])
-            self.biases = k_biases * np.random.randn(self.neurons)
+            self.weights = k_weights * np.array([np.random.randn(n_inputs)])
+            self.biases = k_biases * np.random.randn(n_inputs)
 
         elif init == "test":
-            self.weights = np.ones(shape=(self.neurons))
-            self.biases = np.ones(shape=(self.neurons))
+            self.weights = np.ones(shape=(n_inputs))
+            self.biases = np.ones(shape=(n_inputs))
 
         else:
             raise InitUnknownError()
@@ -117,8 +125,8 @@ class Layer():
                k_biases: float = 1
                ) -> None:
         self.type = "random"
-        self.inputs = n_inputs
-        self.neurons = n_neurons
+        self.n_inputs = n_inputs
+        self.n_neurons = n_neurons
         self.activation = activation
         self.parameters = parameters
         ok = 0
@@ -160,21 +168,22 @@ class Layer():
     def forward(self,
                 inputs: list[float]
                 ) -> None:
-        if self.inputs == 1:
-            self.output = np.zeros((len(inputs), self.neurons))
-            for sample in range(len(inputs)):
-                self.output[sample] = inputs[sample] * self.weights + self.biases
-        elif self.type == 'dense':
-            self.output = np.dot(inputs, self.weights) + self.biases
-        elif self.type == 'straight':
-            self.output = inputs * self.weights + self.biases
-        elif self.type == 'random':
-            weights = deepcopy(self.weights)
-            weights[np.isnan(weights)] = 0
-            self.output = np.dot(inputs, weights) + self.biases
+        assert len(inputs) == self.n_inputs, WrongInputSize(f"Vecteur de taille {inputs} != {self.n_inputs}.")
+        self.output = self.forwardict[self.type](inputs)
         activation = Activation()
         activation.forward(self.output, self.activation, parameters=self.parameters)
         self.output = activation.output
+
+    def forward_dense(self, inputs: np.ndarray) -> np.ndarray:
+        return np.dot(inputs, self.weights) + self.biases
+
+    def forward_straight(self, inputs: np.ndarray) -> np.ndarray:
+        return inputs * self.weights + self.biases
+    
+    def forward_random(self, inputs: np.ndarray) -> np.ndarray:
+        weights = deepcopy(self.weights)
+        weights[np.isnan(weights)] = 0
+        return np.dot(inputs, weights) + self.biases
 
     def copy_from_layer(self, layer: "Layer") -> None:
         for key, elem in layer.__dict__.items():
@@ -185,13 +194,7 @@ class Layer():
         network: object,
         n_layer: int
     ) -> None:
-        self.inputs = network.layers_list[n_layer]
-        self.neurons = network.layers_list[n_layer + 1]
-        self.type = network.brain[n_layer]["type"]
-        self.weights = network.brain[n_layer]["weights"]
-        self.biases = network.brain[n_layer]["biases"]
-        self.activation = network.brain[n_layer]["activation"]
-        self.parameters = network.brain[n_layer]["parameters"]
+        self.copy_from_layer(network.brain[n_layer])
 
     def info(self) -> None:
         print(f"Type : {self.type}\nActivation : {self.activation}\n" +

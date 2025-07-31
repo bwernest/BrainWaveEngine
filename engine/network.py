@@ -1,7 +1,7 @@
 """___Modules_______________________________________________________________"""
 
 # Python
-import copy
+from copy import deepcopy
 import numpy as np
 from matplotlib import pyplot as plt
 
@@ -14,12 +14,25 @@ from .layer import Layer
 class Network():
 
     def __init__(self) -> None:
-        self.brain: list[dict] = []
+        self.brain: list[Layer] = []
         self.len = 0
         self.trained = False
+    
+    def __eq__(self, net: "Network") -> None:
+        valids = [
+            self.len == net.len,
+            self.layers_list == net.layers_list,
+            self.trained == net.trained,
+        ]
+        for layer in range(self.len):
+            valids.append(self.brain[layer] == net.brain[layer])
+        return np.mean(valids) == 1
+    
+    def __ne__(self, net: "Network") -> None:
+        return not self == net
 
     def copy(self, net: "Network") -> None:
-        self.brain = copy.deepcopy(net.brain)
+        self.brain = deepcopy(net.brain)
         self.len = net.len
         self.trained = net.trained
         self.layers_list = net.layers_list
@@ -60,8 +73,8 @@ class Network():
             factors_b = factors_list[:, 1]
             factor_type = 2
 
-        layer = Layer()
         for n in range(len(layers_list) - 1):
+            layer = deepcopy(Layer())
 
             if factor_type == 2:
                 layer.dense(layers_list[n], layers_list[n + 1], 'relu',
@@ -72,8 +85,8 @@ class Network():
             else:
                 layer.dense(layers_list[n], layers_list[n + 1], 'relu', init=init)
             self.add_layer(layer)
-        self.brain[self.len - 1][3] = 'sigmoid'
-        self.brain[self.len - 1][4] = [1]
+        self.brain[-1].activation = "sigmoid"
+        self.brain[-1].parameters = [1]
 
     def function(self,
                  start: float,
@@ -159,59 +172,35 @@ class Network():
     def add_layer(self,
                   layer: Layer
                   ) -> None:
-        self.brain.append({})
+        self.brain.append(layer)
         self.len += 1
-        self.layers_list += (layer.neurons,)
-        self.brain[self.len - 1]["type"] = layer.type
-        self.brain[self.len - 1]["weights"] = layer.weights
-        self.brain[self.len - 1]["biases"] = layer.biases
-        self.brain[self.len - 1]["activation"] = layer.activation
-        self.brain[self.len - 1]["parameters"] = layer.parameters
+        self.layers_list += (layer.n_neurons,)
 
     def modify_layer(self,
                      layer: Layer,
                      n_layer: int
                      ) -> None:
         """Modifies layer n°n_layer, starting from 0."""
-        self.brain[n_layer]["type"] = layer.type
-        self.brain[n_layer]["weights"] = layer.weights
-        self.brain[n_layer]["biases"] = layer.biases
-        self.brain[n_layer]["activation"] = layer.activation
-        self.brain[n_layer]["parameters"] = layer.parameters
+        self.brain[n_layer]= layer
 
     def info(self) -> None:
         for n_layer in range(self.len):
             print('\nLayer', n_layer, ':')
-            layer = Layer()
-            layer.type = self.brain[n_layer]["type"]
-            layer.weights = self.brain[n_layer]["weights"]
-            layer.biases = self.brain[n_layer]["biases"]
-            layer.activation = self.brain[n_layer]["activation"]
-            layer.parameters = self.brain[n_layer]["parameters"]
-            layer.info()
+            self.brain[n_layer].info()
 
     def forward(self,
                 inputs: list[float]
                 ) -> None:     # Activation function ReLU except the last layer
-        values = inputs
-        layer = Layer()
         for n_layer in range(self.len):
-            layer.inputs = self.layers_list[n_layer]
-            layer.neurons = self.layers_list[n_layer + 1]
-            layer.type = self.brain[n_layer]["type"]
-            layer.weights = self.brain[n_layer]["weights"]
-            layer.biases = self.brain[n_layer]["biases"]
-            layer.activation = self.brain[n_layer]["activation"]
-            layer.parameters = self.brain[n_layer]["parameters"]
-            layer.forward(values)
-            values = layer.output
-
-        self.output = values
+            self.brain[n_layer].forward(inputs)
+            inputs = self.brain[n_layer].output
+        self.output = inputs
+        print(self.output)
 
     def get_activations(self) -> list[str]:
         activation_list = []
         for layer in range(self.len):
-            activation_list.append(self.brain[layer]["activation"])
+            activation_list.append(self.brain[layer].activation)
         return activation_list
 
     def get_weights(self) -> np.array:
@@ -230,9 +219,9 @@ class Network():
         """
         weights_list = []
         for layer in range(self.len):
-            for neuron in range(len(self.brain[layer]["weights"])):
-                for weight in range(len(self.brain[layer]["weights"][neuron])):
-                    weight_value = self.brain[layer]["weights"][neuron][weight]
+            for neuron in range(len(self.brain[layer].weights)):
+                for weight in range(len(self.brain[layer].weights[neuron])):
+                    weight_value = self.brain[layer].weights[neuron][weight]
                     weights_list.append([weight_value, layer, neuron, weight])
         return np.array(weights_list)
 
@@ -252,8 +241,8 @@ class Network():
         """
         biases_list = []
         for layer in range(self.len):
-            for bias in range(len(self.brain[layer]["biases"])):
-                bias_value = self.brain[layer]["biases"][bias]
+            for bias in range(len(self.brain[layer].biases)):
+                bias_value = self.brain[layer].biases[bias]
                 biases_list.append([bias_value, layer, bias])
         return np.array(biases_list)
 
@@ -261,7 +250,7 @@ class Network():
                            activation_list: list[Activation]
                            ) -> None:
         for layer in range(self.len):
-            self.brain[layer]["activation"] = activation_list[layer]
+            self.brain[layer].activation = activation_list[layer]
 
     def insert_weights(self,
                        weights_list: list[list[float]]
@@ -270,7 +259,7 @@ class Network():
             weights_list = np.array(weights_list)
         for weight in range(len(weights_list)):
             x, y, z = np.array(weights_list[weight, 1:], dtype='uint8')
-            self.brain[x]["weights"][y][z] = weights_list[weight, 0]
+            self.brain[x].weights[y][z] = weights_list[weight, 0]
 
     def insert_biases(self,
                       biases_list: list[list[float]]
@@ -279,7 +268,7 @@ class Network():
             biases_list = np.array(biases_list)
         for bias in range(len(biases_list)):
             x, y = np.array(biases_list[bias, 1:], dtype='uint8')
-            self.brain[x]["biases"][y] = biases_list[bias, 0]
+            self.brain[x].biases[y] = biases_list[bias, 0]
 
     def display(self,
                 figure: int = 6
@@ -300,9 +289,9 @@ class Network():
         plt.figure(figure)
         '''___Collect_data___'''
         self.layers_list = np.zeros(self.len + 1, dtype='int')
-        self.layers_list[0] = len(self.brain[0]["weights"])
+        self.layers_list[0] = len(self.brain[0].weights)
         for n_layer in range(self.len):
-            self.layers_list[n_layer + 1] = len(self.brain[n_layer]["biases"])
+            self.layers_list[n_layer + 1] = len(self.brain[n_layer].biases)
 
         '''___Neurons___'''
         X = np.linspace(0, len(self.layers_list) - 1, len(self.layers_list))
@@ -314,20 +303,20 @@ class Network():
         '''___Synapses___'''
         for n_layer in range(len(self.layers_list) - 1):
 
-            if self.brain[n_layer]["type"] == 'dense':
+            if self.brain[n_layer].type == "dense":
                 for n_neuron in range(len(Y[n_layer])):
                     for n_synapse in range(len(Y[n_layer + 1])):
                         plt.plot([X[n_layer], X[n_layer + 1]], [Y[n_layer]
                                  [n_neuron], Y[n_layer + 1][n_synapse]], c='black')
 
-            if self.brain[n_layer]["type"] == 'straight':
+            if self.brain[n_layer].type == "straight":
                 for n_neuron in range(len(Y[n_layer])):
                     plt.plot([X[n_layer], X[n_layer + 1]], [Y[n_layer][n_neuron], Y[n_layer][n_neuron]], c='black')
 
-            if self.brain[n_layer]["type"] == 'random':
+            if self.brain[n_layer].type == "random":
                 for n_neuron in range(len(Y[n_layer])):
                     for n_synapse in range(len(Y[n_layer + 1])):
-                        if not np.isnan(self.brain[n_layer]["weights"][n_neuron][n_synapse]):
+                        if not np.isnan(self.brain[n_layer].weights[n_neuron][n_synapse]):
                             plt.plot([X[n_layer], X[n_layer + 1]], [Y[n_layer]
                                      [n_neuron], Y[n_layer + 1][n_synapse]], c='black')
 
@@ -346,12 +335,12 @@ class Network():
              maxi: float,
              tries: int = 10000
              ) -> None:
-        samples = (np.random.random((tries, len(self.brain[0]["weights"]))) + mini) * (maxi - mini)
+        samples = (np.random.random((tries, len(self.brain[0].weights))) + mini) * (maxi - mini)
         self.forward(samples)
         plt.close(fig=10)
         plt.figure(10)
         outmin, outmax = np.min(self.output), np.max(self.output)
-        outputs = len(self.brain[-1]["biases"])
+        outputs = len(self.brain[-1].biases)
         for output in range(outputs):
             colour = output / (outputs)
             plt.scatter(np.linspace(1, tries, tries) + tries * output,

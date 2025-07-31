@@ -5,3 +5,6 @@ class BrainWaveEngineError(Warning):
 
 class InitUnknownError(BrainWaveEngineError):
     pass
+
+class WrongInputSize(BrainWaveEngineError):
+    pass

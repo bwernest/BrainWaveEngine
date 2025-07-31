@@ -30,14 +30,10 @@ def test_layer_copy() -> None:
     layer3.weights = "Rideau"
     layer4 = Layer()
     layer4.dense(3, 6)
-    print("Original")
     print(layer1.weights)
     layer5 = Layer()
     layer5.copy_from_layer(layer1)
     layer5.weights[0][0] += 1
-    print("New")
-    print(layer1.weights)
-    print(layer5.weights)
     assertEqual(layer1, layer2)
     assertNotEqual(layer2, layer3)
     assertNotEqual(layer1, layer4)
@@ -86,8 +82,8 @@ def test_layer_error_init() -> None:
 def test_layer_copy_from_network():
     net = Network()
     layer1 = Layer()
-    net.default([2, 3, 2], init="test")
-    layer1.copy_from_network(net, 1)
+    net.default([2, 3, 7], init="test")
+    layer1.copy_from_network(net, 0)
     layer2 = Layer()
-    layer2.dense(3, 2, init="test")
+    layer2.dense(2, 3, init="test")
     assertEqual(layer1, layer2)
