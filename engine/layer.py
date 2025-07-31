@@ -177,14 +177,14 @@ class Layer(Activation):
 
     def forward_straight(self, inputs: np.ndarray) -> np.ndarray:
         return inputs * self.weights + self.biases
-    
+
     def forward_random(self, inputs: np.ndarray) -> np.ndarray:
         weights = deepcopy(self.weights)
         weights[np.isnan(weights)] = 0
         return np.dot(inputs, weights) + self.biases
 
     def activate(self, inputs: np.ndarray) -> None:
-        self.output = self.ActivDict[self.activation](inputs)
+        self.output = self.ActivDict[self.activation](inputs, self.parameters)
 
     def copy_from_layer(self, layer: "Layer") -> None:
         for key, elem in layer.__dict__.items():

@@ -8,7 +8,7 @@ import numpy as np
 class Activation():      # Build for one inputs set (single) or multiple inputs set (multiple)
 
     def __init__(self) -> None:
-        self.ActivDict : dict[str, function] = {
+        self.ActivDict: dict[str, function] = {
             "relu": self.ReLU,
             "softmax": self.Softmax,
             "clip": self.Clip,
@@ -21,10 +21,10 @@ class Activation():      # Build for one inputs set (single) or multiple inputs 
             "baffwill_v1": self.BaffWill_v1,
         }
 
-    def ReLU(self, input: float) -> float:    # single
+    def ReLU(self, input: float, *args) -> float:    # single
         return np.maximum(0, input)
 
-    def Softmax(self, inputs: np.ndarray) -> np.ndarray:     # multiple
+    def Softmax(self, inputs: np.ndarray, *args) -> np.ndarray:     # multiple
         if len(inputs.shape) > 1:
             values = inputs - np.max(inputs, axis=1, keepdims=1)
             exp_values = np.exp(values)
@@ -36,48 +36,32 @@ class Activation():      # Build for one inputs set (single) or multiple inputs 
             norm_base = np.sum(exp_values)
             return exp_values / norm_base
 
-    def Clip(self,
-             input: np.array,
-             mini: float,
-             maxi: float
-             ) -> np.ndarray:
+    def Clip(self, input: np.ndarray, *args) -> np.ndarray:
         # Keep values in I, the ones outside are brought back to maxi or mini
-        return np.clip(input, mini, maxi)
+        return np.clip(input, args[0][0], args[0][1])
 
-    def Spread(self,
-               inputs: np.array,
-               mini: float,
-               maxi: float
-               ) -> np.ndarray:  # multiple
+    def Spread(self, inputs: np.ndarray, *args) -> np.ndarray:  # multiple
         # Dilatation of the output to interval mini maxi
-        return (inputs - np.min(inputs)) * (maxi - mini) + mini
+        return (inputs - np.min(inputs)) * (args[0][1] - args[0][0]) + args[0][0]
 
-    def Identity(self, inputs: np.ndarray) -> np.ndarray:
+    def Identity(self, inputs: np.ndarray, *args) -> np.ndarray:
         return inputs
 
-    def Argmax(self, inputs: np.array) -> int:      # single
+    def Argmax(self, inputs: np.ndarray, *args) -> int:      # single
         if len(inputs.shape) == 1:
             return np.argmax(inputs)
         else:
             return np.argmax(inputs, axis=1)
 
-    def Sigmoid(self,
-                inputs: np.array,
-                temperature: float = 1
-                ) -> np.ndarray:
-        values = np.minimum(-inputs * temperature, 1e2)
+    def Sigmoid(self, inputs: np.array, *args) -> np.ndarray:
+        values = np.minimum(-inputs * args[0][0], 1e2)
         return 1 / (1 + np.exp(values))
 
-    def TanSigmoid(self,
-                   inputs: np.array,
-                   temperature: float = 1
-                   ) -> np.ndarray:     # multiple
-        values = np.minimum(-2 * inputs * temperature, 1e2)
+    def TanSigmoid(self, inputs: np.array, *args) -> np.ndarray:     # multiple
+        values = np.minimum(-2 * inputs * args[0][0], 1e2)
         return 2 / (1 + np.exp(values)) - 1
 
-    def BaffWill_v1(self,
-                    inputs: list[float]
-                    ) -> np.ndarray:  # multiple
+    def BaffWill_v1(self, inputs: list[float], *args) -> np.ndarray:  # multiple
         # Sort input values from the highest to the lowest. From 0 to len(inputs)-1.
         # The ouput is the rankings of positions according to their inputs.
         lenI = len(inputs)

@@ -2,8 +2,8 @@
 
 # Python
 from copy import deepcopy
-import numpy as np
 from matplotlib import pyplot as plt
+import numpy as np
 
 # BrainWaveEngine
 from .activation import Activation
@@ -17,7 +17,7 @@ class Network():
         self.brain: list[Layer] = []
         self.len = 0
         self.trained = False
-    
+
     def __eq__(self, net: "Network") -> None:
         valids = [
             self.len == net.len,
@@ -27,7 +27,7 @@ class Network():
         for layer in range(self.len):
             valids.append(self.brain[layer] == net.brain[layer])
         return np.mean(valids) == 1
-    
+
     def __ne__(self, net: "Network") -> None:
         return not self == net
 
@@ -39,7 +39,7 @@ class Network():
 
     def default(self,
                 layers_list: list[int],
-                factors_list: list[float] = [],
+                factors_list: np.ndarray = np.array([]),
                 init: str = "default"
                 ) -> None:
         """
@@ -58,7 +58,6 @@ class Network():
         None.
 
         """
-        factors_list = np.array(factors_list)
         factor_type = 0
         self.__init__()
         self.layers_list = [layers_list[0]]
@@ -181,7 +180,7 @@ class Network():
                      n_layer: int
                      ) -> None:
         """Modifies layer n°n_layer, starting from 0."""
-        self.brain[n_layer]= layer
+        self.brain[n_layer] = layer
 
     def info(self) -> None:
         for n_layer in range(self.len):

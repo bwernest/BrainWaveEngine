@@ -25,3 +25,15 @@ def test_NetForward1() -> None:
     net.forward(input)
     assertEqual(len(net.output), 2)
     assertListEqual(net.output, [15, 15])
+
+def test_NetForward2() -> None:
+    net = Network()
+    net.default((4, 4, 4), init="test")
+    layer1 = Layer()
+    layer1.straight(4, "clip", [-12, 150], "test")
+    net.modify_layer(layer1, 0)
+    layer2 = Layer()
+    layer2.straight(4, "clip", [4, 150], "test")
+    net.modify_layer(layer2, -1)
+    net.forward([1, 2, 3, 4])
+    assertListEqual(net.output, [4, 4, 5, 6])

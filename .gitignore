@@ -1,5 +1,6 @@
 # Python
 *.pyc
+*.pyc.*
 
 # pixi environments
 .pixi
