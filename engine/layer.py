@@ -10,7 +10,7 @@ from ..tools.errors import *
 
 """___Classes_______________________________________________________________"""
 
-class Layer():
+class Layer(Activation):
     """
     Information
     ----------
@@ -38,6 +38,7 @@ class Layer():
     n_neurons: int
 
     def __init__(self) -> None:
+        super().__init__()
         self.forwardict = {
             "dense": self.forward_dense,
             "straight": self.forward_straight,
@@ -169,10 +170,7 @@ class Layer():
                 inputs: list[float]
                 ) -> None:
         assert len(inputs) == self.n_inputs, WrongInputSize(f"Vecteur de taille {inputs} != {self.n_inputs}.")
-        self.output = self.forwardict[self.type](inputs)
-        activation = Activation()
-        activation.forward(self.output, self.activation, parameters=self.parameters)
-        self.output = activation.output
+        self.activate(self.forwardict[self.type](inputs))
 
     def forward_dense(self, inputs: np.ndarray) -> np.ndarray:
         return np.dot(inputs, self.weights) + self.biases
@@ -184,6 +182,9 @@ class Layer():
         weights = deepcopy(self.weights)
         weights[np.isnan(weights)] = 0
         return np.dot(inputs, weights) + self.biases
+
+    def activate(self, inputs: np.ndarray) -> None:
+        self.output = self.ActivDict[self.activation](inputs)
 
     def copy_from_layer(self, layer: "Layer") -> None:
         for key, elem in layer.__dict__.items():

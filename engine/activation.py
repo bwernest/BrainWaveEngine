@@ -8,7 +8,7 @@ import numpy as np
 class Activation():      # Build for one inputs set (single) or multiple inputs set (multiple)
 
     def __init__(self) -> None:
-        self.forwardict = {
+        self.ActivDict : dict[str, function] = {
             "relu": self.ReLU,
             "softmax": self.Softmax,
             "clip": self.Clip,
@@ -21,74 +21,63 @@ class Activation():      # Build for one inputs set (single) or multiple inputs 
             "baffwill_v1": self.BaffWill_v1,
         }
 
-    def forward(self,
-                inputs: list[float],
-                fct: str,
-                parameters: list = []
-                ) -> None:
-        if type(fct) == str:
-            self.forwardict[fct](inputs)
-        else:
-            self.output = fct(inputs, parameters)
+    def ReLU(self, input: float) -> float:    # single
+        return np.maximum(0, input)
 
-    def ReLU(self, input: float) -> None:    # single
-        self.output = np.maximum(0, input)
-
-    def Softmax(self, inputs: np.array) -> None:     # multiple
+    def Softmax(self, inputs: np.ndarray) -> np.ndarray:     # multiple
         if len(inputs.shape) > 1:
             values = inputs - np.max(inputs, axis=1, keepdims=1)
             exp_values = np.exp(values)
             norm_base = np.sum(exp_values, axis=1, keepdims=1)
-            self.output = exp_values / norm_base
+            return exp_values / norm_base
         else:
             values = inputs - np.max(inputs)
             exp_values = np.exp(values)
             norm_base = np.sum(exp_values)
-            self.output = exp_values / norm_base
+            return exp_values / norm_base
 
     def Clip(self,
              input: np.array,
              mini: float,
              maxi: float
-             ) -> None:
+             ) -> np.ndarray:
         # Keep values in I, the ones outside are brought back to maxi or mini
-        self.output = np.clip(input, mini, maxi)
+        return np.clip(input, mini, maxi)
 
     def Spread(self,
                inputs: np.array,
                mini: float,
                maxi: float
-               ) -> None:  # multiple
+               ) -> np.ndarray:  # multiple
         # Dilatation of the output to interval mini maxi
-        inputs_norm = (inputs - np.min(inputs)) * (maxi - mini)
-        self.output = inputs_norm + mini
+        return (inputs - np.min(inputs)) * (maxi - mini) + mini
 
-    def Identity(self, inputs: list[float]) -> None:
-        self.output = inputs
+    def Identity(self, inputs: np.ndarray) -> np.ndarray:
+        return inputs
 
-    def Argmax(self, inputs: np.array) -> None:      # single
+    def Argmax(self, inputs: np.array) -> int:      # single
         if len(inputs.shape) == 1:
-            self.output = np.argmax(inputs)
+            return np.argmax(inputs)
         else:
-            self.output = np.argmax(inputs, axis=1)
+            return np.argmax(inputs, axis=1)
 
     def Sigmoid(self,
                 inputs: np.array,
                 temperature: float = 1
-                ) -> None:
+                ) -> np.ndarray:
         values = np.minimum(-inputs * temperature, 1e2)
-        self.output = 1 / (1 + np.exp(values))
+        return 1 / (1 + np.exp(values))
 
     def TanSigmoid(self,
                    inputs: np.array,
                    temperature: float = 1
-                   ) -> None:     # single
+                   ) -> np.ndarray:     # multiple
         values = np.minimum(-2 * inputs * temperature, 1e2)
-        self.output = 2 / (1 + np.exp(values)) - 1
+        return 2 / (1 + np.exp(values)) - 1
 
     def BaffWill_v1(self,
                     inputs: list[float]
-                    ) -> None:  # multiple
+                    ) -> np.ndarray:  # multiple
         # Sort input values from the highest to the lowest. From 0 to len(inputs)-1.
         # The ouput is the rankings of positions according to their inputs.
         lenI = len(inputs)
@@ -102,4 +91,4 @@ class Activation():      # Build for one inputs set (single) or multiple inputs 
             ranking[value] = int(np.argmax(inputs))
             inputs[ranking[value]] = inputs[ranking[-1]] - 1
 
-        self.output = ranking
+        return ranking
